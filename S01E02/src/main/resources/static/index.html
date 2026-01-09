@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chat Test</title>
+    <style>
+        body { font-family: system-ui; max-width: 600px; margin: 50px auto; padding: 20px; }
+        #output { border: 1px solid #ccc; min-height: 200px; padding: 15px; margin: 15px 0; white-space: pre-wrap; }
+        input { width: 70%; padding: 10px; }
+        button { padding: 10px 20px; }
+        .hint { color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h2>流式输出 + 上下文记忆 测试</h2>
+    <input id="msg" placeholder="输入消息..." value="你好，我叫张三">
+    <button onclick="send()">发送</button>
+    <button onclick="clearOutput()">清空</button>
+    <div id="output"></div>
+    <p class="hint">试试先说"我叫张三"，再问"我叫什么"</p>
+    <script>
+        const sessionId = 'test-' + Date.now();
+        
+        function send() {
+            const msg = document.getElementById('msg').value;
+            const output = document.getElementById('output');
+            output.textContent += '\n\n你: ' + msg + '\n\nAI: ';
+            
+            const url = '/stream?message=' + encodeURIComponent(msg) + '&sessionId=' + sessionId;
+            const es = new EventSource(url);
+            es.onmessage = e => output.textContent += e.data;
+            es.onerror = () => es.close();
+            
+            document.getElementById('msg').value = '';
+        }
+        function clearOutput() { document.getElementById('output').textContent = ''; }
+    </script>
+</body>
+</html>

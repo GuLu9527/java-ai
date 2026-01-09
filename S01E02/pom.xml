@@ -13,10 +13,10 @@
     </parent>
     
     <groupId>com.example</groupId>
-    <artifactId>ai-chat-demo</artifactId>
+    <artifactId>ai-chat-stream</artifactId>
     <version>1.0.0</version>
-    <name>ai-chat-demo</name>
-    <description>Spring AI + iFlow 快速开始</description>
+    <name>ai-chat-stream</name>
+    <description>Spring AI 流式输出 + 上下文记忆</description>
     
     <properties>
         <java.version>17</java.version>
@@ -30,11 +30,17 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         
-        <!-- Spring AI OpenAI（包含ChatClient等核心功能） -->
+        <!-- Spring AI OpenAI（包含ChatClient、ChatMemory等核心功能） -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
             <version>${spring-ai.version}</version>
+        </dependency>
+        
+        <!-- Spring WebFlux（流式输出需要） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         
         <!-- 支持从 .env 文件读取环境变量 -->

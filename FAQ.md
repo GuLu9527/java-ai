@@ -59,6 +59,23 @@ A:
 ### Q: 401错误？
 A: API Key错误或未设置。检查 `.env` 文件是否正确配置，或环境变量是否生效。
 
+### Q: IDEA启动后API调用返回空内容？
+A: **最常见原因：`.env` 文件没被加载。**
+
+`spring-dotenv` 从工作目录读取 `.env` 文件。如果你在 IDEA 里打开的是父目录（如 `java-ai`），但 `.env` 在子目录（如 `S01E02/.env`），就会找不到。
+
+**解决方案**（任选一种）：
+
+1. **修改 IDEA 工作目录**：
+   - Edit Configurations → 选择你的应用
+   - Working directory 改成 `$MODULE_DIR$`（或项目子目录的绝对路径）
+
+2. **在 IDEA 里直接设置环境变量**：
+   - Edit Configurations → Environment variables
+   - 添加 `IFLOW_API_KEY=你的密钥`
+
+3. **用命令行启动**：在项目目录下运行 `mvn spring-boot:run`
+
 ### Q: 404错误？
 A: `base-url` 配置多加了 `/v1`。Spring AI 会自动拼接 `/v1/chat/completions`，所以 `base-url` 应该是 `https://apis.iflow.cn`，不要加 `/v1`。
 
