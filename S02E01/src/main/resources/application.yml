@@ -1,0 +1,13 @@
+spring:
+  ai:
+    openai:
+      api-key: ${IFLOW_API_KEY}
+      base-url: https://apis.iflow.cn
+      chat:
+        options:
+          model: qwen3-coder-plus
+
+# LM Studio 本地 Embedding 配置
+lmstudio:
+  base-url: http://127.0.0.1:1234
+  model: text-embedding-nomic-embed-text-v1.5

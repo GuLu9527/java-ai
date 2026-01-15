@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工手册问答 - RAG Demo</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: #1c1c1e; color: #f5f5f7;
+            height: 100vh; display: flex; flex-direction: column;
+        }
+        .header {
+            padding: 16px 20px; border-bottom: 1px solid #3a3a3c;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .header h1 { font-size: 1.2em; }
+        .header .tag {
+            background: #30D158; color: #000; padding: 4px 10px;
+            border-radius: 12px; font-size: 0.75em; font-weight: 600;
+        }
+        .knowledge-panel {
+            padding: 12px 20px; background: #2c2c2e;
+            border-bottom: 1px solid #3a3a3c; font-size: 0.85em;
+        }
+        .knowledge-panel summary {
+            cursor: pointer; color: #7dd3fc; font-weight: 500;
+        }
+        .knowledge-panel pre {
+            margin-top: 10px; padding: 12px; background: #1c1c1e;
+            border-radius: 8px; white-space: pre-wrap; color: #a1a1aa;
+            line-height: 1.6; max-height: 150px; overflow-y: auto;
+        }
+        .messages {
+            flex: 1; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .message { display: flex; width: 100%; }
+        .message.user { justify-content: flex-end; }
+        .message.ai { justify-content: flex-start; }
+        .bubble {
+            max-width: 75%; padding: 12px 16px; border-radius: 16px;
+            line-height: 1.6; white-space: pre-wrap;
+        }
+        .user .bubble { background: #0A84FF; color: white; border-bottom-right-radius: 4px; }
+        .ai .bubble { background: #2c2c2e; border-bottom-left-radius: 4px; }
+        .input-area {
+            padding: 12px 20px; border-top: 1px solid #3a3a3c;
+            display: flex; gap: 10px;
+        }
+        .input-area input {
+            flex: 1; padding: 12px 16px; border-radius: 20px;
+            border: 1px solid #3a3a3c; background: #2c2c2e; color: #f5f5f7;
+            font-size: 1em;
+        }
+        .input-area input:focus { outline: none; border-color: #0A84FF; }
+        .input-area button {
+            padding: 12px 24px; background: #0A84FF; color: white;
+            border: none; border-radius: 20px; cursor: pointer; font-size: 1em;
+        }
+        .input-area button:hover { background: #0070E0; }
+        .input-area button:disabled { background: #3a3a3c; cursor: not-allowed; }
+        .tips {
+            padding: 8px 20px; background: #2c2c2e; border-top: 1px solid #3a3a3c;
+            font-size: 0.8em; color: #86868b;
+        }
+        .tips span { color: #7dd3fc; cursor: pointer; margin-right: 12px; }
+        .tips span:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 员工手册问答</h1>
+        <span class="tag">S02E01</span>
+    </div>
+    <div class="knowledge-panel">
+        <details>
+            <summary>📄 查看知识库内容 (knowledge.txt)</summary>
+            <pre id="knowledge">加载中...</pre>
+        </details>
+    </div>
+    <div class="messages" id="messages">
+        <div class="message ai">
+            <div class="bubble">你好！我是寒冰巨魔科技的 AI 助手。有什么关于公司制度的问题尽管问，但别问我为什么还没下班。</div>
+        </div>
+    </div>
+    <div class="tips">
+        试试问：
+        <span onclick="ask('加班有加班费吗？')">加班有加班费吗？</span>
+        <span onclick="ask('什么情况可以请假？')">什么情况可以请假？</span>
+        <span onclick="ask('报销流程是什么？')">报销流程是什么？</span>
+    </div>
+    <div class="input-area">
+        <input id="input" placeholder="输入问题..." onkeypress="if(event.key==='Enter')send()">
+        <button id="sendBtn" onclick="send()">提问</button>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const sendBtn = document.getElementById('sendBtn');
+        
+        // 加载知识库内容展示
+        fetch('/knowledge.txt')
+            .then(r => r.text())
+            .then(t => document.getElementById('knowledge').textContent = t)
+            .catch(() => document.getElementById('knowledge').textContent = '加载失败');
+        
+        function ask(q) {
+            document.getElementById('input').value = q;
+            send();
+        }
+        
+        async function send() {
+            const input = document.getElementById('input');
+            const question = input.value.trim();
+            if (!question) return;
+            
+            addMessage(question, 'user');
+            input.value = '';
+            sendBtn.disabled = true;
+            
+            const bubble = addMessage('思考中...', 'ai');
+            
+            try {
+                const res = await fetch(`/rag?question=${encodeURIComponent(question)}`);
+                bubble.textContent = await res.text();
+            } catch (e) {
+                bubble.textContent = '请求失败: ' + e.message;
+            } finally {
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        }
+        
+        function addMessage(text, role) {
+            const div = document.createElement('div');
+            div.className = 'message ' + role;
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = text;
+            div.appendChild(bubble);
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            return bubble;
+        }
+        
+        document.getElementById('input').focus();
+    </script>
+</body>
+</html>
